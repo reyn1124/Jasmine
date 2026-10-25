@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JAS Thrift & Style - Mobile Prototype</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            chic: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              beige: '#E6DCCF',
+              terracotta: '#C86D51',
+              espresso: '#2B211B',
+              dark: '#1C1512',
+              gold: '#D4AF37',
+              sage: '#8A9A86'
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar hides for smooth mobile scrolling */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Device Frame Simulation */
+    @media (min-width: 640px) {
+      .mobile-frame {
+        width: 410px;
+        height: 850px;
+        border-radius: 44px;
+        box-shadow: 0 25px 60px -15px rgba(43, 33, 27, 0.4), 0 0 0 12px #2B211B;
+      }
+    }
+
+    /* Step indicator pulse animation */
+    @keyframes pulse-soft {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.85; }
+    }
+    .pulse-step {
+      animation: pulse-soft 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-chic-dark text-chic-espresso font-sans min-h-screen flex flex-col items-center justify-center p-0 sm:p-4">
+
+  <!-- TOP PROTOTYPE SCREEN NAVIGATOR BANNER (For Quick Presentation & Figma/Canva Mapping) -->
+  <div class="w-full max-w-md bg-chic-espresso text-chic-beige p-2.5 sm:rounded-t-2xl text-xs flex items-center justify-between gap-2 z-50 border-b border-chic-terracotta/30">
+    <div class="flex items-center gap-1.5 font-semibold text-chic-cream">
+      <i class="fa-solid fa-layer-group text-chic-terracotta"></i>
+      <span class="text-[11px] uppercase tracking-wider">Screen Jump:</span>
+    </div>
+    <select id="screen-selector" onchange="jumpToScreen(this.value)" class="bg-chic-dark border border-chic-beige/20 text-chic-cream text-[11px] rounded-lg px-2 py-1 outline-none focus:border-chic-terracotta">
+      <option value="screen-auth">1. Auth / Login</option>
+      <option value="screen-home">2. Home Dashboard</option>
+      <option value="screen-catalog">3. Catalog & Filters</option>
+      <option value="screen-product">4. Product Details</option>
+      <option value="screen-wishlist">5. Saved Wishlist</option>
+      <option value="screen-cart">6. Shopping Cart</option>
+      <option value="screen-checkout">7. Multi-step Checkout</option>
+      <option value="screen-order-confirm">8. Order Confirmation</option>
+      <option value="screen-profile">9. Account & History</option>
+    </select>
+  </div>
+
+  <!-- Mobile Screen Frame Container -->
+  <div id="app-container" class="mobile-frame w-full h-screen sm:h-[850px] bg-chic-cream overflow-hidden relative flex flex-col justify-between shadow-2xl sm:rounded-b-3xl">
+
+    <!-- Mobile Top Status Bar -->
+    <div class="bg-chic-dark text-chic-cream text-xs px-6 py-2 flex justify-between items-center z-50 select-none">
+      <div class="flex items-center gap-1.5 font-serif italic text-chic-gold font-bold">
+        <span>JAS Thrift & Style</span>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] text-chic-beige/70">
+        <span id="current-time">09:41</span>
+        <i class="fa-solid fa-signal text-[9px]"></i>
+        <i class="fa-solid fa-wifi text-[9px]"></i>
+        <i class="fa-solid fa-battery-full text-chic-gold text-[10px]"></i>
+      </div>
+    </div>
+
+    <!-- MAIN SCREEN VIEWPORT WRAPPER -->
+    <div class="flex-1 relative overflow-hidden bg-chic-cream">
+
+      <!-- ================= 1. AUTH / LOGIN SCREEN ================= -->
+      <div id="screen-auth" class="absolute inset-0 flex flex-col justify-between p-6 bg-chic-dark text-chic-cream z-40 transition-transform duration-300">
+        <!-- Logo Branding Header -->
+        <div class="text-center pt-8 space-y-2">
+          <div class="w-16 h-16 mx-auto bg-chic-terracotta rounded-full flex items-center justify-center shadow-lg border-2 border-chic-gold">
+            <i class="fa-solid fa-shirt text-2xl text-chic-cream"></i>
+          </div>
+          <h1 class="font-serif text-3xl font-bold tracking-tight text-chic-cream">JAS THRIFT <span class="italic font-normal text-chic-gold">& Co.</span></h1>
+          <p class="text-chic-beige/70 text-xs tracking-widest uppercase">Curated Vintage & Sustainable Fashion</p>
+        </div>
+
+        <!-- Login / Register Tab Form -->
+        <div class="space-y-4 my-auto bg-chic-espresso/60 p-5 rounded-3xl border border-chic-beige/10">
+          <div class="flex border-b border-chic-beige/20 text-xs text-center font-semibold">
+            <button onclick="toggleAuthTab('login')" id="tab-login" class="flex-1 pb-2 border-b-2 border-chic-terracotta text-chic-gold">Login</button>
+            <button onclick="toggleAuthTab('register')" id="tab-register" class="flex-1 pb-2 border-b-2 border-transparent text-chic-beige/60">Register</button>
+          </div>
+
+          <!-- Login Inputs -->
+          <div id="auth-fields-login" class="space-y-3">
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-chic-beige/80">Email / Phone</label>
+              <input type="text" id="login-email" value="alexa.v@jasstyle.com" class="w-full mt-1 p-2.5 bg-chic-dark/80 border border-chic-beige/20 rounded-xl text-xs text-chic-cream outline-none focus:border-chic-terracotta" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-chic-beige/80">Password</label>
+              <input type="password" value="••••••••" class="w-full mt-1 p-2.5 bg-chic-dark/80 border border-chic-beige/20 rounded-xl text-xs text-chic-cream outline-none focus:border-chic-terracotta" />
+            </div>
+            <div class="flex justify-between items-center text-[11px] text-chic-beige/70">
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" checked class="accent-chic-terracotta rounded"> Remember me
+              </label>
+              <a href="#" onclick="showToast('Password reset link sent to email')" class="text-chic-gold hover:underline">Forgot password?</a>
+            </div>
+          </div>
+
+          <!-- Register Extra Inputs (Hidden by default) -->
+          <div id="auth-fields-register" class="space-y-3 hidden">
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-chic-beige/80">Full Name</label>
+              <input type="text" placeholder="Alexa Vance" class="w-full mt-1 p-2.5 bg-chic-dark/80 border border-chic-beige/20 rounded-xl text-xs text-chic-cream outline-none focus:border-chic-terracotta" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-chic-beige/80">Mobile Number</label>
+              <input type="tel" placeholder="+63 917 888 9900" class="w-full mt-1 p-2.5 bg-chic-dark/80 border border-chic-beige/20 rounded-xl text-xs text-chic-cream outline-none focus:border-chic-terracotta" />
+            </div>
+          </div>
+
+          <button onclick="handleLoginSubmit()" class="w-full bg-chic-terracotta hover:bg-chic-terracotta/90 text-chic-cream py-3 rounded-xl font-bold text-xs tracking-wider uppercase shadow-lg transition active:scale-98">
+            <span id="auth-submit-text">Enter Boutique</span>
+          </button>
+        </div>
+
+        <div class="text-center pb-2">
+          <p class="text-[11px] text-chic-beige/50">By continuing, you agree to JAS Thrift Terms & Conditions.</p>
+        </div>
+      </div>
+
+      <!-- ================= 2. HOME DASHBOARD SCREEN ================= -->
+      <div id="screen-home" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <!-- Top App Bar -->
+        <div class="bg-chic-cream px-4 py-3 border-b border-chic-beige/50 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-chic-terracotta">Curated Vintage</span>
+            <h2 class="font-serif text-lg font-bold text-chic-espresso">JAS Thrift & Style</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="switchTab('screen-catalog')" class="w-8 h-8 rounded-full bg-chic-sand flex items-center justify-center text-chic-espresso">
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </button>
+            <button onclick="switchTab('screen-profile')" class="w-8 h-8 rounded-full bg-chic-terracotta text-chic-cream flex items-center justify-center font-bold text-xs">
+              AV
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable Home Content -->
+        <div class="flex-1 overflow-y-auto no-scrollbar space-y-5 pb-20">
+          
+          <!-- Hero Banner Slider Simulation -->
+          <div class="px-4 pt-3">
+            <div class="relative h-44 rounded-2xl overflow-hidden shadow-md bg-cover bg-center flex flex-col justify-end p-4 text-chic-cream" style="background-image: linear-gradient(to top, rgba(28,21,18,0.85), transparent), url('https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80')">
+              <span class="bg-chic-terracotta/90 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full w-max mb-1">New Drop #24</span>
+              <h3 class="font-serif text-xl font-bold">Retro Autumn Essentials</h3>
+              <p class="text-[11px] text-chic-beige/80">Handpicked 90s Jackets, Sweaters & Denim</p>
+              <button onclick="switchTab('screen-catalog')" class="mt-2 bg-chic-cream text-chic-dark text-[11px] font-bold py-1.5 px-3 rounded-lg w-max flex items-center gap-1.5">
+                <span>Explore Drop</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Featured Categories Pills -->
+          <div class="px-4">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="font-serif font-bold text-sm text-chic-espresso">Shop Categories</h4>
+              <button onclick="switchTab('screen-catalog')" class="text-[11px] text-chic-terracotta font-semibold">View All</button>
+            </div>
+            <div class="grid grid-cols-4 gap-2 text-center text-xs">
+              <button onclick="filterCategoryAndOpen('Outerwear')" class="p-2.5 bg-chic-sand rounded-xl flex flex-col items-center gap-1 hover:bg-chic-beige transition">
+                <i class="fa-solid fa-vest-patches text-chic-terracotta text-base"></i>
+                <span class="text-[10px] font-medium text-chic-espresso">Jackets</span>
+              </button>
+              <button onclick="filterCategoryAndOpen('Knitwear')" class="p-2.5 bg-chic-sand rounded-xl flex flex-col items-center gap-1 hover:bg-chic-beige transition">
+                <i class="fa-solid fa-shirt text-chic-terracotta text-base"></i>
+                <span class="text-[10px] font-medium text-chic-espresso">Knits</span>
+              </button>
+              <button onclick="filterCategoryAndOpen('Bottoms')" class="p-2.5 bg-chic-sand rounded-xl flex flex-col items-center gap-1 hover:bg-chic-beige transition">
+                <i class="fa-solid fa-user text-chic-terracotta text-base"></i>
+                <span class="text-[10px] font-medium text-chic-espresso">Pants</span>
+              </button>
+              <button onclick="filterCategoryAndOpen('Dresses')" class="p-2.5 bg-chic-sand rounded-xl flex flex-col items-center gap-1 hover:bg-chic-beige transition">
+                <i class="fa-solid fa-wand-magic-sparkles text-chic-terracotta text-base"></i>
+                <span class="text-[10px] font-medium text-chic-espresso">Dresses</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Trending Thrift Finds Horizontal Carousel -->
+          <div class="pl-4">
+            <h4 class="font-serif font-bold text-sm text-chic-espresso mb-2">Trending Thrift Gems</h4>
+            <div class="flex gap-3 overflow-x-auto no-scrollbar pr-4" id="home-trending-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Sustainability Impact Card -->
+          <div class="px-4">
+            <div class="bg-chic-espresso text-chic-cream p-4 rounded-2xl flex items-center gap-3 border border-chic-gold/20">
+              <div class="w-12 h-12 rounded-xl bg-chic-sage/20 text-chic-sage flex items-center justify-center text-xl flex-shrink-0">
+                <i class="fa-solid fa-leaf"></i>
+              </div>
+              <div class="space-y-0.5">
+                <h5 class="text-xs font-bold text-chic-gold">Sustainable Fashion Choice</h5>
+                <p class="text-[10px] text-chic-beige/70">By shopping thrift, you saved <strong class="text-chic-cream">3,400L of water</strong> this month!</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================= 3. CATALOG & FILTER SCREEN ================= -->
+      <div id="screen-catalog" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <!-- Search & Filter Header Bar -->
+        <div class="bg-chic-cream p-3 border-b border-chic-beige/50 space-y-2">
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-chic-espresso/40 text-xs"></i>
+              <input type="text" id="catalog-search" oninput="applyFilters()" placeholder="Search vintage denim, sweaters, dresses..." class="w-full pl-8 pr-3 py-1.5 bg-chic-sand rounded-xl text-xs outline-none focus:ring-1 focus:ring-chic-terracotta" />
+            </div>
+            <button onclick="openFilterModal()" class="bg-chic-espresso text-chic-cream px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-sliders text-[10px]"></i>
+              <span>Filter</span>
+            </button>
+          </div>
+
+          <!-- Category Quick Pills -->
+          <div class="flex gap-1.5 overflow-x-auto no-scrollbar py-1" id="catalog-category-pills">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Active Filter Indicator Bar -->
+        <div id="active-filter-bar" class="px-3 py-1.5 bg-chic-sand/60 text-[10px] text-chic-espresso flex items-center justify-between border-b border-chic-beige/40">
+          <span id="active-filter-text">Showing All Products (6 items)</span>
+          <button onclick="resetFilters()" class="text-chic-terracotta font-semibold hover:underline">Reset</button>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="flex-1 overflow-y-auto p-3 no-scrollbar grid grid-cols-2 gap-3 pb-20" id="catalog-product-grid">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+
+      <!-- ================= 4. DETAILED PRODUCT SCREEN ================= -->
+      <div id="screen-product" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <!-- Top Sticky Header -->
+        <div class="absolute top-0 left-0 right-0 z-20 p-3 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent">
+          <button onclick="switchTab('screen-catalog')" class="w-8 h-8 rounded-full bg-chic-cream/80 backdrop-blur-md text-chic-espresso flex items-center justify-center shadow">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+          </button>
+          <button onclick="toggleCurrentWishlist()" id="pd-wishlist-btn" class="w-8 h-8 rounded-full bg-chic-cream/80 backdrop-blur-md text-chic-espresso flex items-center justify-center shadow">
+            <i class="fa-regular fa-heart text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable Product Details -->
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-24">
+          <!-- Image Carousel View -->
+          <div class="relative h-72 bg-chic-beige">
+            <img id="pd-image" src="" alt="Product Detail" class="w-full h-full object-cover" />
+            <span id="pd-condition" class="absolute bottom-3 left-3 bg-chic-espresso/90 text-chic-gold font-bold text-[9px] uppercase px-2.5 py-1 rounded-full border border-chic-gold/30">
+              Condition: Excellent (9/10)
+            </span>
+          </div>
+
+          <!-- Product Details Body -->
+          <div class="p-4 space-y-4">
+            <div>
+              <div class="flex justify-between items-start">
+                <span id="pd-category" class="text-[10px] font-bold text-chic-terracotta uppercase tracking-wider">Vintage Outerwear</span>
+                <span class="text-[10px] bg-chic-sage/20 text-chic-sage font-bold px-2 py-0.5 rounded-md">1 In Stock</span>
+              </div>
+              <h2 id="pd-title" class="font-serif text-xl font-bold text-chic-espresso mt-0.5">1990s Washed Denim Trucker Jacket</h2>
+              <div class="flex items-center gap-2 mt-1">
+                <span id="pd-price" class="text-lg font-extrabold text-chic-terracotta">$48.00</span>
+                <span id="pd-original-price" class="text-xs text-chic-espresso/40 line-through">$85.00</span>
+                <span class="text-[10px] bg-chic-terracotta/10 text-chic-terracotta font-bold px-1.5 py-0.5 rounded">43% OFF</span>
+              </div>
+            </div>
+
+            <p id="pd-desc" class="text-xs text-chic-espresso/70 leading-relaxed">
+              Authentic vintage piece carefully inspected and washed. Softened cotton denim with mild natural fading for a genuine retro streetwear look.
+            </p>
+
+            <!-- Size Selection -->
+            <div class="space-y-2 border-t border-b border-chic-beige/60 py-3">
+              <div class="flex justify-between items-center text-xs">
+                <label class="font-bold text-chic-espresso uppercase text-[10px] tracking-wider">Select Size</label>
+                <button onclick="showToast('Fit Guide: Fits true to oversized vintage M')" class="text-chic-terracotta font-semibold text-[11px] underline">Size Guide</button>
+              </div>
+              <div class="flex gap-2" id="pd-size-selectors">
+                <button onclick="selectSize('S')" class="size-btn px-3 py-1.5 border border-chic-beige rounded-xl text-xs font-bold hover:border-chic-terracotta">S</button>
+                <button onclick="selectSize('M')" class="size-btn px-3 py-1.5 border-2 border-chic-terracotta bg-chic-terracotta/10 rounded-xl text-xs font-bold text-chic-terracotta">M</button>
+                <button onclick="selectSize('L')" class="size-btn px-3 py-1.5 border border-chic-beige rounded-xl text-xs font-bold hover:border-chic-terracotta">L</button>
+              </div>
+            </div>
+
+            <!-- Thrift Guarantee Badges -->
+            <div class="grid grid-cols-2 gap-2 text-[10px] text-chic-espresso/80">
+              <div class="p-2 bg-chic-sand rounded-xl flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-chic-terracotta text-sm"></i>
+                <span>Sanitized & Steam Cleaned</span>
+              </div>
+              <div class="p-2 bg-chic-sand rounded-xl flex items-center gap-2">
+                <i class="fa-solid fa-truck-fast text-chic-terracotta text-sm"></i>
+                <span>Ships in 24 Hours</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky Add To Cart Footer -->
+        <div class="absolute bottom-0 left-0 right-0 bg-chic-cream border-t border-chic-beige p-3 z-20 flex gap-3 items-center">
+          <button onclick="toggleCurrentWishlist()" class="w-12 h-12 rounded-xl border border-chic-beige flex items-center justify-center text-chic-espresso">
+            <i id="pd-bottom-heart" class="fa-regular fa-heart text-lg"></i>
+          </button>
+          <button onclick="addCurrentToCart()" class="flex-1 bg-chic-espresso hover:bg-chic-dark text-chic-cream py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span>Add to Cart</span>
+          </button>
+
+          </div>
+      </div>
+
+      <!-- ================= 5. WISHLIST SCREEN ================= -->
+      <div id="screen-wishlist" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <div class="bg-chic-cream p-4 border-b border-chic-beige/50 flex items-center justify-between">
+          <h2 class="font-serif text-lg font-bold text-chic-espresso">Saved Wishlist</h2>
+          <span id="wishlist-count-badge" class="text-xs bg-chic-terracotta/10 text-chic-terracotta font-bold px-2 py-0.5 rounded-full">2 items</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar pb-20" id="wishlist-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- ================= 6. SHOPPING CART SCREEN ================= -->
+      <div id="screen-cart" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <div class="bg-chic-cream p-4 border-b border-chic-beige/50 flex items-center justify-between">
+          <h2 class="font-serif text-lg font-bold text-chic-espresso">Your Shopping Bag</h2>
+          <button onclick="clearCart()" class="text-xs text-chic-terracotta font-semibold hover:underline">Clear All</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar" id="cart-items-container">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Cart Summary Sticky Footer -->
+        <div class="bg-chic-cream border-t border-chic-beige p-4 space-y-3 pb-20">
+          <div class="space-y-1 text-xs text-chic-espresso/80">
+            <div class="flex justify-between"><span>Bag Subtotal</span><span id="cart-subtotal" class="font-bold">$0.00</span></div>
+            <div class="flex justify-between"><span>Eco Packaging</span><span class="text-chic-sage font-bold">FREE</span></div>
+            <div class="flex justify-between text-sm font-bold text-chic-espresso pt-1 border-t border-chic-beige/60">
+              <span>Estimated Total</span><span id="cart-total" class="text-chic-terracotta">$0.00</span>
+            </div>
+          </div>
+          <button onclick="navigateToCheckout()" class="w-full bg-chic-terracotta hover:bg-chic-terracotta/90 text-chic-cream py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
+            <span>Proceed to Checkout</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= 7. MULTI-STEP CHECKOUT SCREEN ================= -->
+      <div id="screen-checkout" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <!-- Header -->
+        <div class="bg-chic-cream p-3 border-b border-chic-beige/50 flex items-center justify-between">
+          <button onclick="switchTab('screen-cart')" class="text-chic-espresso p-1">
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+          </button>
+          <h2 class="font-serif text-base font-bold text-chic-espresso">Checkout</h2>
+          <div class="w-5"></div>
+        </div>
+
+        <!-- Checkout Step Wizard Bar -->
+        <div class="bg-chic-sand/50 px-4 py-2 border-b border-chic-beige/40 flex justify-between text-[10px] font-bold">
+          <div id="step-tab-1" class="flex items-center gap-1 text-chic-terracotta">
+            <span class="w-4 h-4 rounded-full bg-chic-terracotta text-chic-cream flex items-center justify-center text-[9px]">1</span>
+            <span>Address</span>
+          </div>
+          <div id="step-tab-2" class="flex items-center gap-1 text-chic-espresso/40">
+            <span class="w-4 h-4 rounded-full bg-chic-beige text-chic-espresso flex items-center justify-center text-[9px]">2</span>
+            <span>Shipping</span>
+          </div>
+          <div id="step-tab-3" class="flex items-center gap-1 text-chic-espresso/40">
+            <span class="w-4 h-4 rounded-full bg-chic-beige text-chic-espresso flex items-center justify-center text-[9px]">3</span>
+            <span>Payment</span>
+          </div>
+        </div>
+
+        <!-- Checkout Wizard Body Panels -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
+
+          <!-- STEP 1: Address Form -->
+          <div id="checkout-step-1" class="space-y-3">
+            <h3 class="font-serif font-bold text-xs uppercase tracking-wider text-chic-espresso">Delivery Address</h3>
+            <div class="bg-chic-sand p-3 rounded-xl border border-chic-beige/60 space-y-2 text-xs">
+              <div>
+                <label class="text-[10px] font-bold uppercase text-chic-espresso/70">Recipient Full Name</label>
+                <input type="text" id="chk-name" value="Alexa Vance" class="w-full mt-1 p-2 bg-chic-cream border rounded-lg outline-none focus:border-chic-terracotta" />
+              </div>
+              <div>
+                <label class="text-[10px] font-bold uppercase text-chic-espresso/70">Street Address</label>
+                <input type="text" id="chk-address" value="Unit 402, Mahogany Residences, BGC" class="w-full mt-1 p-2 bg-chic-cream border rounded-lg outline-none focus:border-chic-terracotta" />
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-chic-espresso/70">City / District</label>
+                  <input type="text" id="chk-city" value="Taguig City" class="w-full mt-1 p-2 bg-chic-cream border rounded-lg outline-none focus:border-chic-terracotta" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-chic-espresso/70">Postal Code</label>
+                  <input type="text" id="chk-zip" value="1634" class="w-full mt-1 p-2 bg-chic-cream border rounded-lg outline-none focus:border-chic-terracotta" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: Shipping Options (Hidden Initially) -->
+          <div id="checkout-step-2" class="space-y-3 hidden">
+            <h3 class="font-serif font-bold text-xs uppercase tracking-wider text-chic-espresso">Select Shipping Method</h3>
+            <div class="space-y-2 text-xs">
+              <label onclick="selectShippingTier('standard', 4.99)" class="ship-option flex items-center justify-between p-3 bg-chic-cream border-2 border-chic-terracotta rounded-xl cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <input type="radio" name="shipping" checked class="accent-chic-terracotta">
+                  <div>
+                    <p class="font-bold text-chic-espresso">Standard Eco Courier</p>
+                    <p class="text-[10px] text-chic-espresso/60">Delivered in 3-5 Business Days</p>
+                  </div>
+                </div>
+                <span class="font-extrabold text-chic-terracotta">$4.99</span>
+              </label>
+
+              <label onclick="selectShippingTier('express', 8.99)" class="ship-option flex items-center justify-between p-3 bg-chic-cream border border-chic-beige rounded-xl cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <input type="radio" name="shipping" class="accent-chic-terracotta">
+                  <div>
+                    <p class="font-bold text-chic-espresso">Express Air</p>
+                    <p class="text-[10px] text-chic-espresso/60">Delivered in 1-2 Business Days</p>
+                  </div>
+                </div>
+                <span class="font-extrabold text-chic-espresso">$8.99</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 3: Payment Choice (Hidden Initially) -->
+          <div id="checkout-step-3" class="space-y-3 hidden">
+            <h3 class="font-serif font-bold text-xs uppercase tracking-wider text-chic-espresso">Payment Method</h3>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              <button onclick="selectPaymentMethod('gcash')" id="pay-gcash" class="pay-btn border-2 border-chic-terracotta bg-chic-terracotta/10 p-3 rounded-xl flex flex-col items-center gap-1">
+                <i class="fa-solid fa-mobile-screen text-chic-terracotta text-lg"></i>
+                <span class="text-[10px] font-bold">GCash / QR</span>
+              </button>
+              <button onclick="selectPaymentMethod('card')" id="pay-card" class="pay-btn border border-chic-beige p-3 rounded-xl flex flex-col items-center gap-1">
+                <i class="fa-solid fa-credit-card text-chic-espresso/60 text-lg"></i>
+                <span class="text-[10px] font-bold">Card</span>
+              </button>
+              <button onclick="selectPaymentMethod('cod')" id="pay-cod" class="pay-btn border border-chic-beige p-3 rounded-xl flex flex-col items-center gap-1">
+                <i class="fa-solid fa-hand-holding-dollar text-chic-espresso/60 text-lg"></i>
+                <span class="text-[10px] font-bold">COD</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Checkout Subtotal Preview -->
+          <div class="bg-chic-sand/60 p-3 rounded-xl border border-chic-beige/60 space-y-1 text-xs">
+            <div class="flex justify-between"><span>Items Subtotal</span><span id="chk-summary-subtotal">$0.00</span></div>
+            <div class="flex justify-between"><span>Shipping Fee</span><span id="chk-summary-shipping">$4.99</span></div>
+
+            <div class="flex justify-between font-bold text-sm text-chic-espresso pt-1 border-t border-chic-beige">
+              <span>Final Total</span><span id="chk-summary-total" class="text-chic-terracotta">$0.00</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Wizard Navigation Next Step Footer -->
+        <div class="absolute bottom-0 left-0 right-0 bg-chic-cream border-t border-chic-beige p-3 z-20">
+          <button onclick="advanceCheckoutStep()" id="chk-next-btn" class="w-full bg-chic-terracotta hover:bg-chic-terracotta/90 text-chic-cream py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
+            <span>Continue to Shipping</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= 8. ORDER CONFIRMATION & TRACKING SCREEN ================= -->
+      <div id="screen-order-confirm" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center text-center space-y-5">
+          <div class="w-16 h-16 bg-chic-sage/20 text-chic-sage rounded-full flex items-center justify-center text-3xl shadow-inner pulse-step">
+            <i class="fa-solid fa-bag-shopping"></i>
+          </div>
+
+          <div>
+            <span class="bg-chic-terracotta/10 text-chic-terracotta font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">Order Confirmed!</span>
+            <h2 class="font-serif text-2xl font-bold text-chic-espresso mt-2">Order #JAS-<span id="confirmed-order-id">8842</span></h2>
+            <p class="text-xs text-chic-espresso/60 mt-1">Thank you for supporting sustainable thrift fashion!</p>
+          </div>
+
+          <!-- Order Timeline Tracker -->
+          <div class="w-full bg-chic-sand p-4 rounded-2xl border border-chic-beige/60 space-y-3 text-left">
+            <h4 class="text-xs font-bold text-chic-espresso uppercase tracking-wider">Thrift Fulfillment Status</h4>
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-chic-terracotta text-chic-cream flex items-center justify-center text-[10px] font-bold"><i class="fa-solid fa-check"></i></div>
+                <div><p class="font-bold text-chic-espresso">Order Received & Payment Verified</p><p class="text-[10px] text-chic-espresso/50">Today, 09:42 AM</p></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-chic-terracotta text-chic-cream flex items-center justify-center text-[10px] font-bold"><i class="fa-solid fa-box-open"></i></div>
+                <div><p class="font-bold text-chic-espresso">Sanitizing & Eco-Wrap Packaging</p><p class="text-[10px] text-chic-espresso/50">In Progress (Estimated today 2 PM)</p></div>
+              </div>
+              <div class="flex items-center gap-3 opacity-50">
+                <div class="w-6 h-6 rounded-full bg-chic-beige text-chic-espresso flex items-center justify-center text-[10px] font-bold"><i class="fa-solid fa-truck"></i></div>
+                <div><p class="font-bold text-chic-espresso">Out for Delivery</p><p class="text-[10px]">Expected in 2-3 Days</p></div>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="resetAndReturnHome()" class="w-full bg-chic-espresso hover:bg-chic-dark text-chic-cream py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md">
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= 9. ACCOUNT & HISTORY SCREEN ================= -->
+      <div id="screen-profile" class="absolute inset-0 flex flex-col bg-chic-cream z-30 translate-x-full transition-transform duration-300">
+        <div class="bg-chic-cream p-4 border-b border-chic-beige/50 flex items-center justify-between">
+          <h2 class="font-serif text-lg font-bold text-chic-espresso">My Account</h2>
+          <button onclick="handleLogout()" class="text-xs text-chic-terracotta font-semibold hover:underline">Logout</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-20">
+          <!-- User Profile Card -->
+          <div class="bg-chic-sand p-4 rounded-2xl flex items-center gap-3 border border-chic-beige/60">
+            <div class="w-14 h-14 rounded-full bg-chic-terracotta text-chic-cream flex items-center justify-center font-bold text-lg shadow">
+              AV
+            </div>
+            <div>
+              <h3 class="font-serif font-bold text-sm text-chic-espresso">Alexa Vance</h3>
+              <p class="text-[11px] text-chic-espresso/60">alexa.v@jasstyle.com</p>
+              <span class="inline-block mt-1 bg-chic-gold/20 text-chic-espresso font-bold text-[9px] uppercase px-2 py-0.5 rounded-md border border-chic-gold/40">
+                VIP Thrift Member (1,240 pts)
+              </span>
+            </div>
+          </div>
+
+          <!-- Recent Orders Section -->
+          <div class="space-y-2">
+            <h4 class="font-serif font-bold text-xs uppercase tracking-wider text-chic-espresso">Recent Orders</h4>
+            <div class="bg-chic-sand p-3 rounded-xl border border-chic-beige/60 space-y-2 text-xs">
+              <div class="flex justify-between items-center pb-2 border-b border-chic-beige">
+                <div>
+                  <span class="font-bold text-chic-espresso">Order #JAS-7710</span>
+                  <span class="text-[10px] text-chic-espresso/50 block">Oct 12, 2026 • 2 items</span>
+                </div>
+                <span class="bg-chic-sage/20 text-chic-sage font-bold text-[10px] px-2 py-0.5 rounded-full">Delivered</span>
+              </div>
+              <div class="flex justify-between items-center text-[11px]">
+                <span class="text-chic-espresso/70">1980s Leather Trench Coat + 1 more</span>
+                <span class="font-extrabold text-chic-espresso">$112.50</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved Address Book -->
+          <div class="space-y-2">
+            <h4 class="font-serif font-bold text-xs uppercase tracking-wider text-chic-espresso">Saved Address</h4>
+            <div class="bg-chic-sand p-3 rounded-xl border border-chic-beige/60 text-xs space-y-1">
+              <p class="font-bold text-chic-espresso">Alexa Vance (Default)</p>
+              <p class="text-chic-espresso/70">Unit 402, Mahogany Residences, BGC, Taguig City, 1634</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= PERSISTENT BOTTOM NAVIGATION BAR ================= -->
+    <div id="bottom-nav-bar" class="bg-chic-cream border-t border-chic-beige/80 px-3 py-2 z-40 flex justify-around items-center text-chic-espresso">
+      <button onclick="switchTab('screen-home')" id="nav-screen-home" class="nav-btn flex flex-col items-center gap-0.5 text-chic-terracotta">
+        <i class="fa-solid fa-house text-base"></i>
+        <span class="text-[9px] font-bold">Home</span>
+      </button>
+      <button onclick="switchTab('screen-catalog')" id="nav-screen-catalog" class="nav-btn flex flex-col items-center gap-0.5 text-chic-espresso/50 hover:text-chic-terracotta">
+        <i class="fa-solid fa-compass text-base"></i>
+        <span class="text-[9px] font-bold">Shop</span>
+      </button>
+      <button onclick="switchTab('screen-wishlist')" id="nav-screen-wishlist" class="nav-btn relative flex flex-col items-center gap-0.5 text-chic-espresso/50 hover:text-chic-terracotta">
+        <i class="fa-solid fa-heart text-base"></i>
+        <span class="text-[9px] font-bold">Wishlist</span>
+        <span id="nav-wish-badge" class="absolute -top-1 right-2 bg-chic-terracotta text-chic-cream text-[8px] font-extrabold w-3.5 h-3.5 rounded-full flex items-center justify-center">2</span>
+      </button>
+      <button onclick="switchTab('screen-cart')" id="nav-screen-cart" class="nav-btn relative flex flex-col items-center gap-0.5 text-chic-espresso/50 hover:text-chic-terracotta">
+        <i class="fa-solid fa-bag-shopping text-base"></i>
+        <span class="text-[9px] font-bold">Cart</span>
+        <span id="nav-cart-badge" class="absolute -top-1 right-1 bg-chic-terracotta text-chic-cream text-[8px] font-extrabold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
+      </button>
+      <button onclick="switchTab('screen-profile')" id="nav-screen-profile" class="nav-btn flex flex-col items-center gap-0.5 text-chic-espresso/50 hover:text-chic-terracotta">
+        <i class="fa-solid fa-user text-base"></i>
+        <span class="text-[9px] font-bold">Account</span>
+      </button>
+    </div>
+
+    <!-- ================= MODAL: FILTER SLIDE-UP ================= -->
+    <div id="modal-filter" class="absolute inset-0 bg-black/60 z-50 flex flex-col justify-end opacity-0 pointer-events-none transition-opacity duration-300">
+      <div class="bg-chic-cream rounded-t-3xl max-h-[85%] flex flex-col overflow-hidden transform translate-y-full transition-transform duration-300" id="filter-modal-content">
+        <div class="p-4 border-b border-chic-beige flex items-center justify-between">
+          <h3 class="font-serif font-bold text-sm text-chic-espresso">Filter Products</h3>
+          <button onclick="closeFilterModal()" class="w-7 h-7 rounded-full bg-chic-sand text-chic-espresso flex items-center justify-center text-xs">
+            <i class="fa-solid fa-xmark"></i>
+
+            </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto space-y-4 text-xs no-scrollbar">
+          <!-- Size Filter -->
+          <div>
+            <label class="font-bold text-chic-espresso uppercase text-[10px] tracking-wider block mb-2">Size</label>
+            <div class="flex gap-2">
+              <button onclick="toggleFilterChoice('size', 'S')" class="filter-size-btn border px-3 py-1.5 rounded-xl border-chic-beige">S</button>
+              <button onclick="toggleFilterChoice('size', 'M')" class="filter-size-btn border px-3 py-1.5 rounded-xl border-chic-beige">M</button>
+              <button onclick="toggleFilterChoice('size', 'L')" class="filter-size-btn border px-3 py-1.5 rounded-xl border-chic-beige">L</button>
+              <button onclick="toggleFilterChoice('size', 'XL')" class="filter-size-btn border px-3 py-1.5 rounded-xl border-chic-beige">XL</button>
+            </div>
+          </div>
+
+          <!-- Price Filter Slider -->
+          <div>
+            <div class="flex justify-between font-bold text-chic-espresso uppercase text-[10px] tracking-wider mb-2">
+              <span>Max Price</span>
+              <span id="price-range-val" class="text-chic-terracotta">$120.00</span>
+            </div>
+            <input type="range" id="price-slider" min="20" max="150" value="120" oninput="updatePriceSlider(this.value)" class="w-full accent-chic-terracotta">
+          </div>
+
+          <!-- Condition Filter -->
+          <div>
+            <label class="font-bold text-chic-espresso uppercase text-[10px] tracking-wider block mb-2">Item Condition</label>
+            <select id="filter-condition" class="w-full p-2 bg-chic-sand border border-chic-beige rounded-xl outline-none">
+              <option value="All">All Conditions</option>
+              <option value="Like New">Like New (10/10)</option>
+              <option value="Excellent">Excellent (9/10)</option>
+              <option value="Good Vintage">Good Vintage (8/10)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-chic-beige flex gap-2">
+          <button onclick="resetFilters(); closeFilterModal();" class="flex-1 bg-chic-sand text-chic-espresso py-3 rounded-xl font-bold text-xs uppercase">Reset</button>
+          <button onclick="applyFilters(); closeFilterModal();" class="flex-1 bg-chic-terracotta text-chic-cream py-3 rounded-xl font-bold text-xs uppercase shadow">Apply Filters</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST POPUP NOTIFICATION -->
+    <div id="toast-notif" class="absolute top-12 left-1/2 -translate-x-1/2 bg-chic-dark text-chic-cream text-xs px-4 py-2.5 rounded-full shadow-2xl z-50 flex items-center gap-2 transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none border border-chic-gold/30">
+      <i id="toast-icon" class="fa-solid fa-circle-check text-chic-gold"></i>
+      <span id="toast-msg">Item added to cart</span>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Prototype Application Logic -->
+  <script>
+    // --- SAMPLE CLOTHING DATA ---
+    const PRODUCTS = [
+      {
+        id: 'p1',
+        title: '1990s Washed Denim Trucker Jacket',
+        category: 'Outerwear',
+        price: 48.00,
+        origPrice: 85.00,
+        size: 'M',
+        condition: 'Excellent',
+        image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&w=400&q=80',
+        description: 'Authentic 90s softened vintage denim trucker jacket with natural wear and distressing.'
+      },
+      {
+        id: 'p2',
+        title: 'Chunky Knit Oversized Wool Sweater',
+        category: 'Knitwear',
+        price: 38.50,
+        origPrice: 70.00,
+        size: 'L',
+        condition: 'Like New',
+        image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=400&q=80',
+        description: 'Warm cream-colored chunky knit pullover sweater. Perfect autumn statement layering piece.'
+      },
+      {
+        id: 'p3',
+        title: 'High-Waisted Vintage Cargo Pants',
+        category: 'Bottoms',
+        price: 34.00,
+        origPrice: 65.00,
+        size: 'S',
+        condition: 'Good Vintage',
+        image: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=400&q=80',
+        description: 'Retro khaki green utility cargo trousers with relaxed wide leg fit and multiple pockets.'
+      },
+      {
+        id: 'p4',
+        title: '70s Floral Print Chiffon Maxi Dress',
+        category: 'Dresses',
+        price: 52.00,
+        origPrice: 95.00,
+        size: 'M',
+        condition: 'Excellent',
+        image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=400&q=80',
+        description: 'Breathtaking vintage floral maxi dress with subtle bell sleeves and tiered skirt.'
+      },
+      {
+        id: 'p5',
+        title: 'Distressed Brown Leather Biker Jacket',
+        category: 'Outerwear',
+        price: 88.00,
+        origPrice: 160.00,
+        size: 'L',
+        condition: 'Good Vintage',
+        image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=400&q=80',
+        description: 'Genuine vintage leather motorcycle jacket featuring authentic worn patina and heavy zips.'
+      },
+      {
+        id: 'p6',
+        title: 'Classic Pleated Corduroy Trousers',
+        category: 'Bottoms',
+        price: 36.00,
+        origPrice: 60.00,
+        size: 'M',
+        condition: 'Like New',
+        image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=400&q=80',
+        description: 'Rich chestnut brown corduroy pants in flawless condition with flattering tapered leg.'
+      }
+    ];
+
+    // --- STATE MANAGEMENT ---
+    let cart = [
+      { product: PRODUCTS[0], size: 'M', qty: 1 }
+    ];
+    let wishlist = ['p1', 'p4'];
+    let selectedCategory = 'All';
+    let filterSize = null;
+    let filterMaxPrice = 120;
+    let activeProduct = PRODUCTS[0];
+    let selectedSize = 'M';
+
+    let currentCheckoutStep = 1;
+    let selectedShippingFee = 4.99;
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      renderHomeTrending();
+      renderCatalogPills();
+      renderCatalogGrid();
+      renderWishlist();
+      updateCartUI();
+    };
+
+    // --- NAVIGATION FLOW & JUMPERS ---
+    function switchTab(screenId) {
+      const screens = [
+        'screen-auth', 'screen-home', 'screen-catalog', 
+        'screen-product', 'screen-wishlist', 'screen-cart', 
+        'screen-checkout', 'screen-order-confirm', 'screen-profile'
+      ];
+
+    screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (id === screenId) {
+          el.classList.remove('translate-x-full');
+        } else {
+          el.classList.add('translate-x-full');
+        }
+      });
+
+      // Update Screen Selector Dropdown
+      const selector = document.getElementById('screen-selector');
+      if (selector) selector.value = screenId;
+
+      // Update Bottom Nav Highlighting
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-chic-terracotta');
+        btn.classList.add('text-chic-espresso/50');
+      });
+
+      const activeNavBtn = document.getElementById(`nav-${screenId}`);
+      if (activeNavBtn) {
+        activeNavBtn.classList.remove('text-chic-espresso/50');
+        activeNavBtn.classList.add('text-chic-terracotta');
+      }
+    }
+
+    function jumpToScreen(screenId) {
+      switchTab(screenId);
+    }
+
+    // --- AUTHENTICATION ---
+    function toggleAuthTab(tab) {
+      const loginFields = document.getElementById('auth-fields-login');
+      const regFields = document.getElementById('auth-fields-register');
+      const submitText = document.getElementById('auth-submit-text');
+
+      if (tab === 'login') {
+        loginFields.classList.remove('hidden');
+        regFields.classList.add('hidden');
+        document.getElementById('tab-login').classList.add('border-chic-terracotta', 'text-chic-gold');
+        document.getElementById('tab-register').classList.remove('border-chic-terracotta', 'text-chic-gold');
+        submitText.innerText = 'Enter Boutique';
+      } else {
+        loginFields.classList.add('hidden');
+        regFields.classList.remove('hidden');
+        document.getElementById('tab-register').classList.add('border-chic-terracotta', 'text-chic-gold');
+        document.getElementById('tab-login').classList.remove('border-chic-terracotta', 'text-chic-gold');
+        submitText.innerText = 'Create Account';
+      }
+    }
+
+    function handleLoginSubmit() {
+      showToast('Welcome back, Alexa!');
+      switchTab('screen-home');
+    }
+
+    function handleLogout() {
+      showToast('Logged out');
+      switchTab('screen-auth');
+    }
+
+    // --- HOME DASHBOARD ---
+    function renderHomeTrending() {
+      const container = document.getElementById('home-trending-container');
+      container.innerHTML = PRODUCTS.slice(0, 4).map(p => `
+        <div onclick="openProductDetails('${p.id}')" class="w-36 flex-shrink-0 bg-chic-sand p-2 rounded-xl border border-chic-beige/60 cursor-pointer">
+          <img src="${p.image}" class="w-36 h-36 object-cover rounded-lg mb-2" />
+          <h5 class="font-bold text-xs text-chic-espresso truncate">${p.title}</h5>
+          <div class="flex items-center justify-between mt-1">
+            <span class="font-bold text-xs text-chic-terracotta">$${p.price.toFixed(2)}</span>
+            <span class="text-[9px] bg-chic-cream px-1.5 py-0.5 rounded border border-chic-beige font-semibold">${p.size}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterCategoryAndOpen(cat) {
+      selectedCategory = cat;
+      renderCatalogPills();
+      applyFilters();
+      switchTab('screen-catalog');
+    }
+
+    // --- CATALOG & FILTERS ---
+    function renderCatalogPills() {
+      const categories = ['All', 'Outerwear', 'Knitwear', 'Bottoms', 'Dresses'];
+      const container = document.getElementById('catalog-category-pills');
+      container.innerHTML = categories.map(cat => `
+        <button onclick="setCatalogCategory('${cat}')" class="px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition ${selectedCategory === cat ? 'bg-chic-terracotta text-chic-cream' : 'bg-chic-sand text-chic-espresso/70 hover:bg-chic-beige'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function setCatalogCategory(cat) {
+      selectedCategory = cat;
+      renderCatalogPills();
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = document.getElementById('catalog-search').value.toLowerCase();
+      const condFilter = document.getElementById('filter-condition').value;
+
+      const filtered = PRODUCTS.filter(p => {
+        const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
+        const matchesQuery = p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query);
+        const matchesSize = !filterSize || p.size === filterSize;
+        const matchesPrice = p.price <= filterMaxPrice;
+        const matchesCond = condFilter === 'All' || p.condition === condFilter;
+        return matchesCat && matchesQuery && matchesSize && matchesPrice && matchesCond;
+      });
+
+      document.getElementById('active-filter-text').innerText = `Showing selectedCategory({filtered.length} items)`;
+      renderCatalogGrid(filtered);
+    }
+
+    function renderCatalogGrid(items = PRODUCTS) {
+      const grid = document.getElementById('catalog-product-grid');
+      if (items.length === 0) {
+        grid.innerHTML = `<div class="col-span-2 text-center py-12 text-chic-espresso/50 text-xs">No unique thrift items matched your filters.</div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(p => {
+        const isWished = wishlist.includes(p.id);
+        return `
+          <div class="bg-chic-sand p-2 rounded-2xl border border-chic-beige/60 flex flex-col justify-between relative group">
+            <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" class="absolute top-3 right-3 w-7 h-7 rounded-full bg-chic-cream/90 flex items-center justify-center text-chic-espresso shadow z-10">
+              <i class="${isWished ? 'fa-solid text-chic-terracotta' : 'fa-regular'} fa-heart text-xs"></i>
+            </button>
+            <div onclick="openProductDetails('${p.id}')" class="cursor-pointer">
+              <img src="${p.image}" class="w-full h-40 object-cover rounded-xl mb-2" />
+              <span class="text-[9px] bg-chic-cream px-1.5 py-0.5 rounded border font-semibold text-chic-espresso/70">${p.condition}</span>
+              <h4 class="font-bold text-xs text-chic-espresso mt-1 line-clamp-1">${p.title}</h4>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="font-extrabold text-xs text-chic-terracotta">$${p.price.toFixed(2)}</span>
+                <span class="text-[10px] text-chic-espresso/40 line-through">$${p.origPrice.toFixed(2)}</span>
+              </div>
+            </div>
+            <button onclick="quickAddToCart('${p.id}')" class="w-full mt-2 bg-chic-espresso hover:bg-chic-dark text-chic-cream py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+              + Add to Cart
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function resetFilters() {
+      selectedCategory = 'All';
+      filterSize = null;
+      filterMaxPrice = 120;
+      document.getElementById('catalog-search').value = '';
+      document.getElementById('filter-condition').value = 'All';
+      document.getElementById('price-slider').value = 120;
+
+
+    document.getElementById('price-range-val').innerText = '$120.00';
+      renderCatalogPills();
+      applyFilters();
+    }
+
+    // --- PRODUCT DETAIL PAGE ---
+    function openProductDetails(productId) {
+      activeProduct = PRODUCTS.find(p => p.id === productId);
+      selectedSize = activeProduct.size;
+
+      document.getElementById('pd-title').innerText = activeProduct.title;
+      document.getElementById('pd-category').innerText = `Vintage ${activeProduct.category}`;
+      document.getElementById('pd-price').innerText = `$${activeProduct.price.toFixed(2)}`;
+      document.getElementById('pd-original-price').innerText = `$${activeProduct.origPrice.toFixed(2)}`;
+      document.getElementById('pd-desc').innerText = activeProduct.description;
+      document.getElementById('pd-condition').innerText = `Condition: ${activeProduct.condition}`;
+      document.getElementById('pd-image').src = activeProduct.image;
+
+      updateProductWishlistState();
+      switchTab('screen-product');
+    }
+
+    function selectSize(sz) {
+      selectedSize = sz;
+      document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.classList.remove('border-2', 'border-chic-terracotta', 'bg-chic-terracotta/10', 'text-chic-terracotta');
+        btn.classList.add('border-chic-beige');
+      });
+      event.target.classList.add('border-2', 'border-chic-terracotta', 'bg-chic-terracotta/10', 'text-chic-terracotta');
+    }
+
+    function toggleCurrentWishlist() {
+      toggleWishlist(activeProduct.id);
+      updateProductWishlistState();
+    }
+
+    function updateProductWishlistState() {
+      const isWished = wishlist.includes(activeProduct.id);
+      const topBtn = document.getElementById('pd-wishlist-btn');
+      const bottomHeart = document.getElementById('pd-bottom-heart');
+
+      if (isWished) {
+        topBtn.innerHTML = `<i class="fa-solid fa-heart text-chic-terracotta text-xs"></i>`;
+        bottomHeart.className = 'fa-solid fa-heart text-chic-terracotta text-lg';
+      } else {
+        topBtn.innerHTML = `<i class="fa-regular fa-heart text-xs"></i>`;
+        bottomHeart.className = 'fa-regular fa-heart text-lg';
+      }
+    }
+
+    // --- WISHLIST MANAGEMENT ---
+    function toggleWishlist(productId) {
+      const idx = wishlist.indexOf(productId);
+      if (idx > -1) {
+        wishlist.splice(idx, 1);
+        showToast('Removed from wishlist');
+      } else {
+        wishlist.push(productId);
+        showToast('Saved to wishlist!');
+      }
+      document.getElementById('nav-wish-badge').innerText = wishlist.length;
+      document.getElementById('wishlist-count-badge').innerText = `${wishlist.length} items`;
+      renderWishlist();
+      renderCatalogGrid();
+    }
+
+    function renderWishlist() {
+      const container = document.getElementById('wishlist-container');
+      const items = PRODUCTS.filter(p => wishlist.includes(p.id));
+
+      if (items.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-chic-espresso/50 text-xs">No saved wishlist items yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = items.map(p => `
+        <div class="bg-chic-sand p-3 rounded-2xl border border-chic-beige/60 flex gap-3 items-center">
+          <img src="${p.image}" class="w-16 h-16 object-cover rounded-xl" />
+          <div class="flex-1">
+            <h4 class="font-bold text-xs text-chic-espresso">${p.title}</h4>
+            <p class="text-[10px] text-chic-espresso/60">Size: ${p.size} • ${p.condition}</p>
+            <span class="font-extrabold text-xs text-chic-terracotta">$${p.price.toFixed(2)}</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button onclick="quickAddToCart('${p.id}')" class="bg-chic-terracotta text-chic-cream px-2.5 py-1 rounded-lg text-[10px] font-bold">Add</button>
+            <button onclick="toggleWishlist('${p.id}')" class="text-chic-espresso/40 hover:text-chic-terracotta text-xs"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- SHOPPING CART ---
+    function quickAddToCart(productId) {
+      const prod = PRODUCTS.find(p => p.id === productId);
+      addToCart(prod, prod.size);
+    }
+
+    function addCurrentToCart() {
+      addToCart(activeProduct, selectedSize);
+    }
+
+    function addToCart(prod, size) {
+      const existing = cart.find(i => i.product.id === prod.id && i.size === size);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ product: prod, size: size, qty: 1 });
+      }
+      updateCartUI();
+      showToast('Added to Shopping Bag!');
+    }
+
+    function updateCartUI() {
+      const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+      const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+
+      document.getElementById('nav-cart-badge').innerText = totalCount;
+      document.getElementById('cart-subtotal').innerText = `$${subtotal.toFixed(2)}`;
+      document.getElementById('cart-total').innerText = `$${subtotal.toFixed(2)}`;
+
+      renderCartItems();
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById('cart-items-container');
+      if (cart.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-chic-espresso/50 text-xs">Your shopping bag is empty.</div>`;
+        return;
+      }
+
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="bg-chic-sand p-3 rounded-2xl border border-chic-beige/60 flex gap-3 items-center">
+          <img src="${item.product.image}" class="w-16 h-16 object-cover rounded-xl" />
+          <div class="flex-1">
+            <h4 class="font-bold text-xs text-chic-espresso line-clamp-1">${item.product.title}</h4>
+            <p class="text-[10px] text-chic-espresso/60">Size: ${item.size}</p>
+            <span class="font-extrabold text-xs text-chic-terracotta">$${(item.product.price * item.qty).toFixed(2)}</span>
+          </div>
+          <div class="flex items-center gap-2 border border-chic-beige bg-chic-cream rounded-lg px-2 py-1 text-xs">
+            <button onclick="changeCartQty(${idx}, -1)" class="font-bold text-chic-espresso">-</button>
+            <span class="font-bold">${item.qty}</span>
+            <button onclick="changeCartQty(${idx}, 1)" class="font-bold text-chic-espresso">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function changeCartQty(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+      updateCartUI();
+    }
+
+    function clearCart() {
+
+    cart = [];
+      updateCartUI();
+      showToast('Bag cleared');
+    }
+
+    // --- CHECKOUT FLOW ---
+    function navigateToCheckout() {
+      if (cart.length === 0) {
+        showToast('Bag is empty!');
+        return;
+      }
+
+      const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+      document.getElementById('chk-summary-subtotal').innerText = `$${subtotal.toFixed(2)}`;
+      document.getElementById('chk-summary-total').innerText = `$${(subtotal + selectedShippingFee).toFixed(2)}`;
+
+      currentCheckoutStep = 1;
+      updateCheckoutWizardUI();
+      switchTab('screen-checkout');
+    }
+
+    function advanceCheckoutStep() {
+      if (currentCheckoutStep === 1) {
+        currentCheckoutStep = 2;
+      } else if (currentCheckoutStep === 2) {
+        currentCheckoutStep = 3;
+      } else {
+        // Finalize order
+        const orderId = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('confirmed-order-id').innerText = orderId;
+        cart = [];
+        updateCartUI();
+        switchTab('screen-order-confirm');
+        return;
+      }
+      updateCheckoutWizardUI();
+    }
+
+    function updateCheckoutWizardUI() {
+      document.getElementById('checkout-step-1').classList.add('hidden');
+      document.getElementById('checkout-step-2').classList.add('hidden');
+      document.getElementById('checkout-step-3').classList.add('hidden');
+
+      document.getElementById(`checkout-step-${currentCheckoutStep}`).classList.remove('hidden');
+
+      const nextBtn = document.getElementById('chk-next-btn');
+      if (currentCheckoutStep === 1) {
+        nextBtn.innerHTML = `<span>Continue to Shipping</span> <i class="fa-solid fa-arrow-right"></i>`;
+      } else if (currentCheckoutStep === 2) {
+        nextBtn.innerHTML = `<span>Continue to Payment</span> <i class="fa-solid fa-arrow-right"></i>`;
+      } else {
+        nextBtn.innerHTML = `<span>Place Order & Pay</span> <i class="fa-solid fa-lock"></i>`;
+      }
+    }
+
+    function selectShippingTier(tier, fee) {
+      selectedShippingFee = fee;
+      document.getElementById('chk-summary-shipping').innerText = `$${fee.toFixed(2)}`;
+      const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+      document.getElementById('chk-summary-total').innerText = `$${(subtotal + fee).toFixed(2)}`;
+    }
+
+    function selectPaymentMethod(method) {
+      document.querySelectorAll('.pay-btn').forEach(btn => {
+        btn.classList.remove('border-chic-terracotta', 'bg-chic-terracotta/10');
+        btn.classList.add('border-chic-beige');
+      });
+      document.getElementById(`pay-${method}`).classList.add('border-chic-terracotta', 'bg-chic-terracotta/10');
+    }
+
+    function resetAndReturnHome() {
+      switchTab('screen-home');
+    }
+
+    // --- MODAL CONTROLS ---
+    function openFilterModal() {
+      const modal = document.getElementById('modal-filter');
+      const content = document.getElementById('filter-modal-content');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      content.classList.remove('translate-y-full');
+    }
+
+    function closeFilterModal() {
+      const modal = document.getElementById('modal-filter');
+      const content = document.getElementById('filter-modal-content');
+      content.classList.add('translate-y-full');
+      setTimeout(() => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+      }, 200);
+    }
+
+    function updatePriceSlider(val) {
+      filterMaxPrice = parseFloat(val);
+      document.getElementById('price-range-val').innerText = `$${filterMaxPrice.toFixed(2)}`;
+    }
+
+    function toggleFilterChoice(type, val) {
+      if (type === 'size') {
+        filterSize = filterSize === val ? null : val;
+        document.querySelectorAll('.filter-size-btn').forEach(btn => {
+          if (btn.innerText === val && filterSize) {
+            btn.classList.add('border-chic-terracotta', 'bg-chic-terracotta/10', 'text-chic-terracotta');
+          } else {
+            btn.classList.remove('border-chic-terracotta', 'bg-chic-terracotta/10', 'text-chic-terracotta');
+          }
+        });
+      }
+    }
+
+    // --- TOAST NOTIFICATIONS ---
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notif');
+      document.getElementById('toast-msg').innerText = msg;
+      toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+      }, 2200);
+    }
+  </script>
+</body>
+</html>
